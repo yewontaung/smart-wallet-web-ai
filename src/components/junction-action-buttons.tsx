@@ -1,4 +1,5 @@
 import { ArrowUpRight, ArrowDownLeft, Plus, CreditCard } from 'lucide-react';
+import { LiquidGlass } from './glass/liquid-glass';
 
 interface JunctionActionButtonsProps {
   onSend: () => void;
@@ -39,7 +40,8 @@ export function JunctionActionButtons({
   return (
     <div className="relative z-20 px-2 -my-7">
       <div className="flex justify-between items-center px-3">
-        {actions.map((act, index) => (
+
+        {/* {actions.map((act, index) => (
           <div key={index} className="flex flex-col items-center gap-2">
             <button
               onClick={act.onClick}
@@ -51,7 +53,30 @@ export function JunctionActionButtons({
               {act.label}
             </span>
           </div>
+        ))} */}
+
+        {actions.map((act, index) => (
+          <div key={index} className="flex flex-col items-center gap-2">
+            <LiquidGlass
+              onClick={act.onClick}
+              width={60}
+              height={60}
+              backgroundColor='rgba(255, 255, 255, 0.1)'
+              border='none'
+              blur={2}
+              depth={5}
+              chromaticAberration={1}
+              strength={55}
+              className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:border-white/30 active:scale-95 transition-all shadow-lg group"
+            >
+              {act.icon}
+            </LiquidGlass>
+            <span className="text-[11px] font-medium text-zinc-300">
+              {act.label}
+            </span>
+          </div>
         ))}
+
       </div>
     </div>
   );

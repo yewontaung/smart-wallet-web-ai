@@ -1,0 +1,65 @@
+.liquid-glass {
+  position: relative;
+
+  display: block;
+
+  overflow: hidden;
+
+  color: white;
+
+  cursor: pointer;
+
+  isolation: isolate;
+
+  transition:
+    transform 100ms ease;
+
+  box-sizing: border-box;
+}
+
+.liquid-glass-auto {
+  display: inline-block;
+
+  width: fit-content;
+
+  height: fit-content;
+}
+
+.liquid-glass:active {
+  transform: scale(0.98);
+}
+
+.liquid-glass-content {
+  position: relative;
+
+  z-index: 1;
+
+  display: flex;
+
+  width: 100%;
+  height: 100%;
+
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+
+  text-align: center;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+
+.liquid-glass-auto
+  .liquid-glass-content {
+  width: fit-content;
+  height: fit-content;
+
+  padding:
+    var(--glass-padding, 16px 24px);
+}

@@ -54,7 +54,7 @@ export function HomePage() {
           </div>
 
           {/* JUNCTION: Floated half on balance card bottom edge */}
-          <div className="relative z-30 -mt-7 px-2">
+          <div className="relative z-30 -mt-2 px-2">
             <JunctionActionButtons
               onSend={() => {}}
               onReceive={() => {}}
