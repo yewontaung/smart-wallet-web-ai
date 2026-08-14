@@ -1,0 +1,6 @@
+{
+  "name": "Smart Wallet",
+  "description": "Smart Wallet demo with banking admin interface, NLP agentic tool calling popup, and mobile-first wallet user dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
