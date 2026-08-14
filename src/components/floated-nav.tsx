@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Bot, Users, Settings, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { LiquidGlass } from './glass/liquid-glass';
 
 export type WalletNavTab = 'home' | 'agent' | 'contact' | 'setting';
 
@@ -29,7 +30,9 @@ export function FloatedNav({ activeTab, onChangeTab }: FloatedNavProps) {
   };
 
   return (
-    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[92%] max-w-[390px] bg-[#1a1a20]/95 backdrop-blur-2xl border border-white/10 rounded-full p-1.5 flex items-center justify-between gap-2 z-40 shadow-2xl shadow-black/70">
+    <div
+      className="fixed bottom-5 border border-white/35 backdrop-blur-sm rounded-full p-1.5 flex justify-center left-1/2 -translate-x-1/2 w-[92%] max-w-[390px] z-40"
+    >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (

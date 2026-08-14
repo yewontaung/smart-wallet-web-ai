@@ -34,7 +34,7 @@ export function HomePage() {
       <div className="relative max-w-[420px] mx-auto min-h-screen flex flex-col px-5">
         {/* BALANCE SECTION CARD with increased height & padding */}
         <div className="pt-4 pb-6">
-          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-sky-500 rounded-3xl p-7 sm:p-8 pt-12 sm:pt-14 relative shadow-2xl mt-6 border border-sky-400/30 min-h-[170px] sm:min-h-[190px] flex flex-col justify-center">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-sky-500 rounded-3xl p-7 sm:p-8 relative shadow-2xl mt-6 border border-sky-400/30 min-h-[170px] sm:min-h-[190px] flex flex-col justify-center">
             {/* Floated Header Actions overlaying top edge of balance card with their under half */}
             <div className="absolute -top-5 sm:-top-6 right-6 z-30">
               <FloatedHeaderActions

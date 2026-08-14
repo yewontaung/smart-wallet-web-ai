@@ -1,11 +1,14 @@
 import {
   type CSSProperties,
   type ReactNode,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from 'react'
+
+import { cn } from '../../utils/cn'
 
 import {
   getDisplacementFilter,
@@ -14,11 +17,15 @@ import {
 
 import './liquid-glass.css'
 
+const TAILWIND_BG_PATTERN = /\bbg-/
+
 export interface LiquidGlassProps {
   children?: ReactNode
-  border?:string
+  border?: string
 
+  /** Explicit pixel width. Omit to size via Tailwind `w-*` classes. */
   width?: number
+  /** Explicit pixel height. Omit to size via Tailwind `h-*` classes. */
   height?: number
 
   radius?: number
@@ -28,6 +35,7 @@ export interface LiquidGlassProps {
 
   chromaticAberration?: number
 
+  /** Inline background color. Omit when using Tailwind `bg-*` classes. */
   backgroundColor?: string
 
   debug?: boolean
@@ -44,14 +52,14 @@ export interface LiquidGlassProps {
 
   className?: string
   style?: CSSProperties
-  onClick?:(e?:MouseEvent) => void
+  onClick?: (e?: React.MouseEvent<HTMLDivElement>) => void
 }
 
 export function LiquidGlass({
   children,
 
-  width = 200,
-  height = 200,
+  width,
+  height,
   border,
   onClick,
 
@@ -62,8 +70,7 @@ export function LiquidGlass({
 
   chromaticAberration = 0,
 
-  backgroundColor =
-    'rgba(255, 255, 255, 0.4)',
+  backgroundColor = 'rgba(255, 255, 255, 0.4)',
 
   debug = false,
 
@@ -80,48 +87,34 @@ export function LiquidGlass({
   className,
   style,
 }: LiquidGlassProps) {
-  const glassRef =
-    useRef<HTMLDivElement>(null)
+  const glassRef = useRef<HTMLDivElement>(null)
 
-  const [clicked, setClicked] =
-    useState(false)
+  const [clicked, setClicked] = useState(false)
 
-  const [responsiveSize, setResponsiveSize] =
-    useState({
-      width:
-        baseWidth ?? width,
-      height:
-        baseHeight ?? height,
-    })
+  const [responsiveSize, setResponsiveSize] = useState({
+    width: baseWidth ?? width ?? 0,
+    height: baseHeight ?? height ?? 0,
+  })
 
-  const actualWidth =
-    responsive
-      ? responsiveSize.width
-      : width
+  const hasExplicitWidth = width !== undefined
+  const hasExplicitHeight = height !== undefined
+  const usesTailwindSizing =
+    !autoSize && (!hasExplicitWidth || !hasExplicitHeight)
+  const usesTailwindBackground = TAILWIND_BG_PATTERN.test(className ?? '')
 
-  const actualHeight =
-    responsive
-      ? responsiveSize.height
-      : height
+  const actualWidth = responsive ? responsiveSize.width : width
+  const actualHeight = responsive ? responsiveSize.height : height
 
-  const actualDepth =
-    depth / (clicked ? 0.7 : 1)
+  const actualDepth = depth / (clicked ? 0.7 : 1)
 
-  /*
-   * Responsive sizing
-   */
   useEffect(() => {
     if (!responsive) return
 
     const update = () => {
-      const baseW =
-        baseWidth ?? width
+      const baseW = baseWidth ?? width ?? 0
+      const baseH = baseHeight ?? height ?? 0
 
-      const baseH =
-        baseHeight ?? height
-
-      const viewport =
-        window.innerWidth
+      const viewport = window.innerWidth
 
       let scale = 1
 
@@ -141,103 +134,58 @@ export function LiquidGlass({
 
     update()
 
-    window.addEventListener(
-      'resize',
-      update
-    )
+    window.addEventListener('resize', update)
 
     return () => {
-      window.removeEventListener(
-        'resize',
-        update
-      )
+      window.removeEventListener('resize', update)
     }
-  }, [
-    responsive,
-    baseWidth,
-    baseHeight,
-    width,
-    height,
-  ])
+  }, [responsive, baseWidth, baseHeight, width, height])
 
-  /*
-   * Apply glass effect
-   */
-  const updateGlass = () => {
-    const element =
-      glassRef.current
+  const updateGlass = useCallback(() => {
+    const element = glassRef.current
 
     if (!element) return
 
-    let w = actualWidth
-    let h = actualHeight
+    let w = actualWidth ?? 0
+    let h = actualHeight ?? 0
 
-    /*
-     * Auto-size
-     */
-    if (autoSize) {
-      const rect =
-        element.getBoundingClientRect()
+    if (autoSize || usesTailwindSizing) {
+      const rect = element.getBoundingClientRect()
 
       w = Math.ceil(rect.width)
       h = Math.ceil(rect.height)
 
-      w = Math.max(
-        w,
-        minWidth,
-        50
-      )
-
-      h = Math.max(
-        h,
-        minHeight,
-        30
-      )
+      w = Math.max(w, minWidth, autoSize ? 50 : 1)
+      h = Math.max(h, minHeight, autoSize ? 30 : 1)
     }
 
     if (w <= 0 || h <= 0) return
 
-    element.style.borderRadius =
-      `${radius}px`
+    element.style.borderRadius = `${radius}px`
 
-    /*
-     * Debug mode
-     */
     if (debug) {
-      element.style.background =
-        `url("${getDisplacementMap({
-          width: w,
-          height: h,
-          radius,
-          depth: actualDepth,
-        })}")`
-
-      element.style.backdropFilter =
-        'none'
-
-      element.style.boxShadow =
-        'none'
-
-      return
-    }
-
-    /*
-     * SVG displacement filter
-     */
-    const filter =
-      getDisplacementFilter({
+      element.style.background = `url("${getDisplacementMap({
         width: w,
         height: h,
         radius,
         depth: actualDepth,
-        strength,
-        chromaticAberration,
-      })
+      })}")`
+      element.style.backdropFilter = 'none'
+      element.style.setProperty('-webkit-backdrop-filter', 'none')
+      element.style.boxShadow = 'none'
+      return
+    }
 
-    element.style.background =
-      backgroundColor
+    const filter = getDisplacementFilter({
+      width: w,
+      height: h,
+      radius,
+      depth: actualDepth,
+      strength,
+      chromaticAberration,
+    })
 
-    element.style.backdropFilter = `
+    const backdrop = `
       blur(${blur / 2}px)
       url("${filter}")
       blur(${blur}px)
@@ -245,14 +193,12 @@ export function LiquidGlass({
       saturate(1.5)
     `
 
-    element.style.backdropFilter =
-      `
-      blur(${blur / 2}px)
-      url("${filter}")
-      blur(${blur}px)
-      brightness(1.1)
-      saturate(1.5)
-    `
+    if (!usesTailwindBackground) {
+      element.style.background = backgroundColor
+    }
+
+    element.style.backdropFilter = backdrop
+    element.style.setProperty('-webkit-backdrop-filter', backdrop)
 
     element.style.boxShadow = `
       1px 1px 1px 0px
@@ -265,21 +211,8 @@ export function LiquidGlass({
       rgba(0,0,0,0.04)
     `
 
-    element.style.border = border ??
-      '1px solid rgba(255,255,255,0.3)'
-  }
-
-  /*
-   * Update after layout
-   */
-  useLayoutEffect(() => {
-    const frame =
-      requestAnimationFrame(() => {
-        updateGlass()
-      })
-
-    return () =>
-      cancelAnimationFrame(frame)
+    element.style.border =
+      border ?? '1px solid rgba(255,255,255,0.3)'
   }, [
     actualWidth,
     actualHeight,
@@ -289,84 +222,74 @@ export function LiquidGlass({
     strength,
     chromaticAberration,
     backgroundColor,
+    border,
     debug,
     autoSize,
+    usesTailwindSizing,
+    usesTailwindBackground,
+    minWidth,
+    minHeight,
   ])
 
-  /*
-   * Auto-size observer
-   */
-  useEffect(() => {
-    if (!autoSize) return
+  useLayoutEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      updateGlass()
+    })
 
-    const element =
-      glassRef.current
+    return () => cancelAnimationFrame(frame)
+  }, [updateGlass])
+
+  useEffect(() => {
+    if (!autoSize && !usesTailwindSizing) return
+
+    const element = glassRef.current
 
     if (!element) return
 
-    const observer =
-      new ResizeObserver(() => {
-        updateGlass()
-      })
+    const observer = new ResizeObserver(() => {
+      updateGlass()
+    })
 
     observer.observe(element)
 
-    return () =>
-      observer.disconnect()
-  }, [autoSize])
+    return () => observer.disconnect()
+  }, [autoSize, usesTailwindSizing, updateGlass])
+
+  const inlineSize: CSSProperties = {}
+
+  if (hasExplicitWidth && !autoSize) {
+    inlineSize.width = responsive ? actualWidth : width
+  }
+
+  if (hasExplicitHeight && !autoSize) {
+    inlineSize.height = responsive ? actualHeight : height
+  }
+
+  if (autoSize) {
+    if (minWidth > 0) inlineSize.minWidth = minWidth
+    if (minHeight > 0) inlineSize.minHeight = minHeight
+  }
 
   return (
     <div
       ref={glassRef}
-      className={[
+      className={cn(
         'liquid-glass',
-        autoSize
-          ? 'liquid-glass-auto'
-          : '',
-        className ?? '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+        autoSize && 'liquid-glass-auto',
+        className,
+      )}
       style={{
-        width: autoSize
-          ? undefined
-          : actualWidth,
-
-        height: autoSize
-          ? undefined
-          : actualHeight,
-
-        minWidth:
-          autoSize
-            ? minWidth || undefined
-            : undefined,
-
-        minHeight:
-          autoSize
-            ? minHeight || undefined
-            : undefined,
-
+        ...inlineSize,
         ...style,
       }}
-      onMouseDown={() =>
-        setClicked(true)
-      }
-      onMouseUp={() =>
-        setClicked(false)
-      }
-      onMouseLeave={() =>
-        setClicked(false)
-      }
-      onTouchStart={() =>
-        setClicked(true)
-      }
-      onTouchEnd={() =>
-        setClicked(false)
-      }
+      onClick={onClick}
+      onMouseDown={() => setClicked(true)}
+      onMouseUp={() => setClicked(false)}
+      onMouseLeave={() => setClicked(false)}
+      onTouchStart={() => setClicked(true)}
+      onTouchEnd={() => setClicked(false)}
     >
-      <div className="liquid-glass-content">
-        {children}
-      </div>
+      <div className="liquid-glass-content">{children}</div>
     </div>
   )
 }
