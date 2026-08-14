@@ -5,7 +5,6 @@ import { JunctionActionButtons } from '../../components/junction-action-buttons'
 import { TransactionList } from '../../components/transaction-list';
 import { FloatedHeaderActions } from '../../components/floated-header-actions';
 import { FloatedNav, WalletNavTab } from '../../components/floated-nav';
-import { ActionModal } from '../../components/action-modal';
 import { NotificationDrawer } from '../../components/notification-drawer';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +13,6 @@ export function HomePage() {
   const {
     user,
     transactions,
-    contacts,
     notifications,
     showBalance,
     toggleShowBalance,
@@ -22,7 +20,6 @@ export function HomePage() {
     markNotificationsRead,
   } = useWallet();
 
-  const [activeModal, setActiveModal] = useState<'send' | 'receive' | 'top_up' | 'pay_bill' | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
   const handleNavChange = (tab: WalletNavTab) => {
@@ -59,10 +56,10 @@ export function HomePage() {
           {/* JUNCTION: Floated half on balance card bottom edge */}
           <div className="relative z-30 -mt-7 px-2">
             <JunctionActionButtons
-              onSend={() => setActiveModal('send')}
-              onReceive={() => setActiveModal('receive')}
-              onTopUp={() => setActiveModal('top_up')}
-              onPayBill={() => setActiveModal('pay_bill')}
+              onSend={() => {}}
+              onReceive={() => {}}
+              onTopUp={() => {}}
+              onPayBill={() => {}}
             />
           </div>
         </div>
@@ -83,17 +80,6 @@ export function HomePage() {
         onChangeTab={handleNavChange}
         onRefreshData={refreshData}
       />
-
-      {/* Action Modal */}
-      {activeModal && (
-        <ActionModal
-          type={activeModal}
-          onClose={() => setActiveModal(null)}
-          onSuccess={refreshData}
-          user={user}
-          contacts={contacts}
-        />
-      )}
 
       {/* Notification Drawer */}
       <NotificationDrawer
